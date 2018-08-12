@@ -36,7 +36,7 @@ cv2.namedWindow(windowName)
 l = 0
 
 hm_epochs = 20
-number_of_data = 10
+number_of_data = 10    # this the number of images that you want to take with webcam as a new traing images
 n_classes = 2
 batch_size = 10
 
@@ -135,8 +135,8 @@ def train_neural_network(bottleneck_plcaholder, bottleneck_valus, labels, batch_
 
 def feed_for():
     global l
-    img = np.zeros((number_of_data, height_img, width_img))
-    label = np.zeros(number_of_data).astype(int)
+    #img = np.zeros((number_of_data, height_img, width_img))
+    #label = np.zeros(number_of_data).astype(int)
     i = 0
 
     cap = cv2.VideoCapture(0)
