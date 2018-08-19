@@ -317,8 +317,6 @@ def capture_and_save_dataset():
 
 def main():
     images1, labels1 = capture_and_save_dataset()
-
-    input_data, labels = load_data_from_files()
     
     graph, input_tensor, init = train_neural_network()
 
