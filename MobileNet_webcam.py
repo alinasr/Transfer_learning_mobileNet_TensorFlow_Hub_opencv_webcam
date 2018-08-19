@@ -53,91 +53,89 @@ def creat_graph(ModuleSpec):
 
 
 
-def run_and_save_bottleneck(input_data, batch_step):
+def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor, batch_step):
+    input_data, labels = load_data_from_files()
 
-
-# conevrs images from unin8 to float numbers
+    # conevrt images from unin8 to float numbers
     image_as_float = tf.image.convert_image_dtype(input_data, tf.float32)
+    decoded_images = sess.run(image_as_float)
 
+    x_epoch = decoded_images[0: batch_size]
+    bottleneck_value = sess.run(bottleneck_tensor, feed_dict={input_tensor: x_epoch})
 
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.tables_initializer())
-        decoded_images = sess.run(image_as_float)
-
-# starting a sessin tu get bottleneck values
-    bottleneck_tensor = m(x);
-
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.tables_initializer())
-
-        x_epoch = decoded_images[0: batch_size]
-        bottleneck_value = sess.run(bottleneck_tensor, feed_dict={x: x_epoch})
-
-        for batch in range(1, batch_step):
-            x_epoch = decoded_images[batch  * batch_size : (batch + 1) * batch_size]
-            batche_value = sess.run(bottleneck_tensor, feed_dict={x:x_epoch})
-            bottleneck_value = np.concatenate((bottleneck_value, batche_value))
-            print(bottleneck_value.shape)
+    for batch in range(1, batch_step):
+        x_epoch = decoded_images[batch  * batch_size : (batch + 1) * batch_size]
+        batche_value = sess.run(bottleneck_tensor, feed_dict={input_tensor:x_epoch})
+        bottleneck_value = np.concatenate((bottleneck_value, batche_value))
+        #print(bottleneck_value.shape)
     print("finishing up")
 
 
-    return bottleneck_value
+    return  bottleneck_value, labels
 
 
 
 
-def mobileNet(bottleneck_plcaholder):
-
-
+def last_layer(X):
+    y = tf.placeholder('float')
     weights = {'out': tf.Variable(tf.random_normal([1024, n_classes], stddev=0.001))}
-
     biases = {'out': tf.Variable(tf.random_normal([n_classes], stddev=0.001))}
-
-
     #fc = tf.nn.relu(tf.matmul(fc, weights['Weights_FC']) + biases['Biase_FC'])
-
     # fc = tf.nn.dropout(fc, keep_rate)
-
-    output = tf.matmul(bottleneck_plcaholder, weights['out']) + biases['out']
-
-    return  output
-
-
-
-
-
-
-def train_neural_network(bottleneck_plcaholder, bottleneck_valus, labels, batch_step):
-
-    prediction = mobileNet(bottleneck_plcaholder)
-
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
-
+    output = tf.matmul(X, weights['out']) + biases['out']
+    output = tf.identity(output, name='output_1')
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=output, labels=y))
     optimizer = tf.train.AdamOptimizer().minimize(cost)
 
-    with tf.Session()as sess:
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()
-        for epoch in range(hm_epochs):
-            epoch_loss = 0
-            for batch in range(batch_step):
-                epoch_x = bottleneck_valus[batch * batch_size: (batch + 1) * batch_size]
-                epoch_y = labels[batch * batch_size: (batch + 1) * batch_size]
+    return output, cost, optimizer, y
 
-                _, c = sess.run([optimizer, cost], feed_dict={bottleneck_plcaholder: epoch_x, y: epoch_y})
-                epoch_loss += c
-            print('Epoch', epoch, 'completed out of', hm_epochs, 'loss:', epoch_loss)
 
-        # please customize the directory for your project
-        saver.save(sess, '/home/ali/PycharmProjects/tensorHub/save/my_test_model')
 
-        # correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y,1))
-        # accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
-        # print('Accyracy:', accuracy.eval({x:mnist.test.images, y:mnist.test.labels}))
+
+
+
+def train_neural_network():
+    batch_step = 7
+    ModuleSpec = hub.load_module_spec("https://tfhub.dev/google/imagenet/mobilenet_v1_100_128/feature_vector/1")
+    graph, bottleneck_tensor, input_tensor = creat_graph(ModuleSpec)
+
+    with graph.as_default():
+        _, bottleneck_tensor_size = bottleneck_tensor.get_shape().as_list()
+        X = tf.placeholder_with_default(bottleneck_tensor, shape=[None, bottleneck_tensor_size],
+                                        name='newlayerinputplacholder')
+        output, cost, optimizer, y = last_layer(X)
+
+
+        with tf.Session(graph=graph)as sess:
+            init = tf.global_variables_initializer()
+            sess.run(init)
+
+            bottleneck_value, labels = run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor, batch_step)
+
+            saver = tf.train.Saver()
+            for epoch in range(hm_epochs):
+                epoch_loss = 0
+                for batch in range(batch_step):
+                    epoch_x = bottleneck_value[batch * batch_size: (batch + 1) * batch_size]
+                    epoch_y = labels[batch * batch_size: (batch + 1) * batch_size]
+
+                    _, c = sess.run([optimizer, cost], feed_dict={X: epoch_x, y: epoch_y})
+                    epoch_loss += c
+                print('Epoch', epoch, 'completed out of', hm_epochs, 'loss:', epoch_loss)
+            writer = tf.summary.FileWriter("output", sess.graph)
+            writer.close()
+            # please customize the directory for your project
+            saver.save(sess, '/home/ali/PycharmProjects/tensorHub/save/my_test_model')
+
+            # correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y,1))
+            # accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+            # print('Accyracy:', accuracy.eval({x:mnist.test.images, y:mnist.test.labels}))
+
+
+    return graph, input_tensor, init
+
+
+
 
 
 def feed_for():
