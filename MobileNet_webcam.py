@@ -18,7 +18,7 @@ data_path = "/home/ali/PycharmProjects/tensorHub/data/"
 label_zero_path = data_path + "label_zero/"
 label_one_path = data_path + "label_one/"
 
-m = hub.Module("https://tfhub.dev/google/imagenet/mobilenet_v1_100_128/feature_vector/1")
+
 
 #height_img, width_img = hub.get_expected_image_size(m)
 #depth = hub.get_num_image_channels(m)
@@ -35,14 +35,10 @@ windowName = 'cam'
 cv2.namedWindow(windowName)
 l = 0
 
-hm_epochs = 20
-number_of_data = 10    # this the number of images that you want to take with webcam as a new traing images
+hm_epochs = 100
+number_of_data = 10
 n_classes = 2
 batch_size = 10
-
-x = tf.placeholder('float', [None, width_img , height_img, 3])
-bottleneck_plcaholder = tf.placeholder('float', [None, 1024])
-y = tf.placeholder('float')
 
 
 
