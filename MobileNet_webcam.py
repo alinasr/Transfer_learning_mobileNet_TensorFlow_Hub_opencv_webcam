@@ -53,8 +53,10 @@ def creat_graph(ModuleSpec):
 
 
 
-def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor, batch_step):
+def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor):
     input_data, labels = load_data_from_files()
+    total, _ = labels.shape
+    batch_step = total/batch_size
 
     # conevrt images from unin8 to float numbers
     image_as_float = tf.image.convert_image_dtype(input_data, tf.float32)
@@ -95,7 +97,6 @@ def last_layer(X):
 
 
 def train_neural_network():
-    batch_step = 7
     ModuleSpec = hub.load_module_spec("https://tfhub.dev/google/imagenet/mobilenet_v1_100_128/feature_vector/1")
     graph, bottleneck_tensor, input_tensor = creat_graph(ModuleSpec)
 
@@ -110,7 +111,7 @@ def train_neural_network():
             init = tf.global_variables_initializer()
             sess.run(init)
 
-            bottleneck_value, labels = run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor, batch_step)
+            bottleneck_value, labels, batch_step = run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor)
 
             saver = tf.train.Saver()
             for epoch in range(hm_epochs):
