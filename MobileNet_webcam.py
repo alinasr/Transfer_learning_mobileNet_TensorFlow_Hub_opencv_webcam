@@ -41,6 +41,17 @@ n_classes = 2
 batch_size = 10
 
 
+def creat_graph(ModuleSpec):
+    with tf.Graph().as_default() as graph:
+        input_tensor = tf.placeholder('float', [None, width_img, height_img, 3])
+        #bottleneck_plcaholder = tf.placeholder('float', [None, 1024])
+        #y = tf.placeholder('float')
+        m = hub.Module(ModuleSpec)
+        bottleneck_tensor = m(input_tensor)
+
+    return graph, bottleneck_tensor, input_tensor
+
+
 
 def run_and_save_bottleneck(input_data, batch_step):
 
