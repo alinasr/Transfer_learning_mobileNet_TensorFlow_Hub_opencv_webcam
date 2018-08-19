@@ -290,19 +290,22 @@ def capture_and_save_dataset():
     files_count_in_label_zero = len([f for f in os.listdir(label_zero_path)
                                      if os.path.isfile(os.path.join(label_zero_path, f))])
     files_count_in_label_one = len([f for f in os.listdir(label_one_path)
-                                    if os.path.isfile(os.path.join(label_zero_path, f))])
+                                    if os.path.isfile(os.path.join(label_one_path, f))])
 
     files_counts = files_count_in_label_one + files_count_in_label_zero
+    n = 0
 
     for j in label:
+
         if j == 0:
             files_counts += 1
-            cv2.imwrite(label_zero_path + "{}.jpg".format(files_counts), img[j],
+            cv2.imwrite(label_zero_path + "{}.jpg".format(files_counts), img[n],
                     [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         if j == 1:
             files_counts += 1
-            cv2.imwrite(label_one_path + "{}.jpg".format(files_counts), img[j],
+            cv2.imwrite(label_one_path + "{}.jpg".format(files_counts), img[n],
                         [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+        n += 1
 
         if cv2.waitKey(1) == 27:  # exit on ESC
             break
