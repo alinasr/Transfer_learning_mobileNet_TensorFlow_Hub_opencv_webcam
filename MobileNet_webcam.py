@@ -316,16 +316,15 @@ def capture_and_save_dataset():
 
 
 def main():
-    #images1, labels1 = capture_and_save_dataset()
+    images1, labels1 = capture_and_save_dataset()
 
     input_data, labels = load_data_from_files()
+    
+    graph, input_tensor, init = train_neural_network()
 
-    number_of_data, _,_,_ = input_data.shape
-    batch_step = int(number_of_data/batch_size)
+    feed_for(graph, input_tensor, init)
 
-    bottleneck_valus = run_and_save_bottleneck(input_data, batch_step)
 
-    train_neural_network(bottleneck_plcaholder, bottleneck_valus, labels, batch_step)
 
 
 main()
