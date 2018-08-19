@@ -56,7 +56,7 @@ def creat_graph(ModuleSpec):
 def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor):
     input_data, labels = load_data_from_files()
     total, _ = labels.shape
-    batch_step = total/batch_size
+    batch_step = int(total/batch_size)
 
     # conevrt images from unin8 to float numbers
     image_as_float = tf.image.convert_image_dtype(input_data, tf.float32)
