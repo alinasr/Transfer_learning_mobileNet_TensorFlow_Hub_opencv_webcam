@@ -23,6 +23,8 @@ label_one_path = data_path + "label_one/"
 #height_img, width_img = hub.get_expected_image_size(m)
 #depth = hub.get_num_image_channels(m)
 
+#declaring necesare value and variables
+
 height_img = 128
 width_img = 128
 
@@ -51,7 +53,7 @@ def creat_graph(ModuleSpec):
 
     return graph, bottleneck_tensor, input_tensor
 
-
+# calculate and save fixed part of graph
 
 def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor):
     input_data, labels = load_data_from_files()
@@ -76,7 +78,7 @@ def run_and_save_bottleneck(sess, bottleneck_tensor, input_tensor):
     return  bottleneck_value, labels
 
 
-
+# new fully connceted layer for new application
 
 def last_layer(X):
     y = tf.placeholder('float')
@@ -94,7 +96,7 @@ def last_layer(X):
 
 
 
-
+# train new graph
 
 def train_neural_network():
     ModuleSpec = hub.load_module_spec("https://tfhub.dev/google/imagenet/mobilenet_v1_100_128/feature_vector/1")
@@ -137,7 +139,7 @@ def train_neural_network():
 
 
 
-
+# feed-forward network
 
 def feed_for():
     global l
